@@ -1,6 +1,4 @@
--- LIFO-CCR-TrainInfoSys/rail_leaved.lua
-local stn = "Exp" -- Station ID
-local plat = 1 -- Platform int
+-- LIFO-CCR-TrainInfoSys/rail_segment.lua
 local routes = {
     EXP1 = { -- Key: Route ID
         dest = "Exp2", -- stn ID
@@ -13,7 +11,6 @@ local routes = {
 }
 
 if event.train and atc_arrow then
-    F.TIS.train_leaved(stn,plat)
     local rc = F.get_rc_safe()
     for x,y in pairs(routes) do
         if F.has_rc(x, rc) then

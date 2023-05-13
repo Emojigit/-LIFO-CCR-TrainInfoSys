@@ -1,3 +1,4 @@
+-- LIFO-CCR-TrainInfoSys/rail_arrived.lua
 local stn = "Exp" -- Station ID
 local plat = 1 -- Platform int
 local match_RCs = {"EXP1","EXP2"}

@@ -1,10 +1,11 @@
-local stn = "Exp2" -- Station ID
+-- LIFO-CCR-TrainInfoSys/controller_four_platforms.lua
+local stn = "Sg" -- Station ID
 local align_disp = "l" -- display
-local stop_time = 10 -- Stop time in seconds
-local platforms = {nil,2,3,{"U1",1}} -- Platforms of every rows (str or {str,disp_int})), nil to disable that row
+local stop_time = 12 -- Stop time in seconds
+local platforms = {nil,1,2,nil} -- Platforms of every rows (str or {str,disp_int})), nil to disable that row
 
-local default_lines = {"COC1", "COC2", "COC3", "COC4"} -- Default lines for each platform
-local default_towards = {"Rh", "Rh", "Rh", "Rh"} -- Default towards for each platform
+local default_lines = {nil, "COL1", "COL1", nil} -- Default lines for each platform
+local default_towards = {nil, "Sg", "Sg",nil} -- Default towards for each platform
 
 --[[ Display Example
 12345678901234567890123456 (not actual line)
@@ -16,9 +17,11 @@ local default_towards = {"Rh", "Rh", "Rh", "Rh"} -- Default towards for each pla
 ]]
 -- Thank ChatGPT for producing the code so I just have to do small improvements
 
-local function format_time(seconds)
-    if seconds < 0 then
+local function format_time(seconds,arrived)
+    if not seconds or seconds < 0 then
         return "N/A"
+    elseif arrived then
+        return string.format("D%d", seconds)
     elseif seconds < 60 then
         return string.format("%ds", seconds)
     else
@@ -28,51 +31,50 @@ local function format_time(seconds)
     end
 end
 
-local function get_platform_data(plat)
+local function get_platform_data(i,plat)
     local coming_id, coming_data = F.TIS.get_coming_train(stn, plat)
     if not coming_data then
-        return default_lines[plat], default_towards[plat], nil, nil
+        return default_lines[i], default_towards[i], nil, nil
     elseif coming_data.dist == 0 then
-        return coming_data.line, coming_data.towards, coming_data.speed, stop_time - os.time() + coming_data.time
+        return coming_data.line, coming_data.towards, coming_data.speed, stop_time - os.time() + coming_data.time, true
     else
         local time_used = os.time() - coming_data.time
         local metre_remained = coming_data.dist - (time_used * coming_data.speed)
         local seconds_wait = metre_remained / coming_data.speed
-        return coming_data.line, coming_data.towards, coming_data.speed, seconds_wait
+        return coming_data.line, coming_data.towards, coming_data.speed, (seconds_wait + 4), false
     end
 end
 
-local function format_platform_data(plat,disp)
-    local line, towards, speed, time = get_platform_data(plat)
+local function format_platform_data(i,plat,disp)
+    local line, towards, speed, time, arrived = get_platform_data(i,plat)
     if not line then
         return ""
     end
-    local s = string.format("%d %-4s > %s %s", disp or plat, line, F.get_stn_name(towards, true), format_time(time))
-    if speed then
-        s = s .. string.format("  (%.1fm/s)", speed)
-    end
+    local s = string.format("%d %-4s > %-12s %s", disp or plat, line, F.get_stn_name(towards, true), format_time(time,arrived))
     return s
 end
 
 local function update_display()
     local data = {}
-    for n,y in ipairs(platforms) do
+    for i=1, 4 do
+        y = platforms[i]
         if y == nil then
-            if n == 1 then
+            if i == 1 then
                 table.insert(data,"# Line   Destination  Time")
             else
-                table.insert(data,"")
+                table.insert(data," ")
             end
-        elseif type(y) == "number" then
-            table.insert(data,format_platform_data(y))
+        elseif type(y) == "table" then
+            table.insert(data,format_platform_data(i,y[1],y[2]))
         else
-            table.insert(data,format_platform_data(y[1],y[2]))
+            table.insert(data,format_platform_data(i,y))
         end
     end
-    digiline_send(align_disp, table.concat(data, "\n"))
+    digiline_send(align_disp, table.concat(data, "\n") .. " ")
 end
 
 if event.punch then
+    digiline_send(align_disp, "INIT")
     interrupt_safe(2)
 elseif event.int then
     update_display()

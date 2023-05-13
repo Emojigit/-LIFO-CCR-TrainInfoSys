@@ -1,3 +1,4 @@
+-- LIFO-CCR-TrainInfoSys/env.lua START
 F.STN_ID = { -- string, or table{long,short}
     -- Cat-o-land Local Lines Stations
     CcF = "CANDC Farm", -- Digilines have problem showing "&"
@@ -97,3 +98,4 @@ F.TIS = { -- Train Information System
         return sid, selected
     end,
 }
+-- LIFO-CCR-TrainInfoSys/env.lua END
