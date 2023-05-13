@@ -1,5 +1,5 @@
 local stn = "Exp2" -- Station ID
-local align_disp = "l" -- Align left display
+local align_disp = "l" -- display
 local stop_time = 10 -- Stop time in seconds
 local platforms = {nil,2,3,{"U1",1}} -- Platforms of every rows (str or {str,disp_int})), nil to disable that row
 
@@ -74,7 +74,7 @@ end
 
 if event.punch then
     interrupt_safe(2)
-elseif event.interrupt then
+elseif event.int then
     update_display()
     interrupt_safe(2)
 end

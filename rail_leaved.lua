@@ -12,11 +12,12 @@ local routes = {
 }
 
 if event.train and atc_arrow then
-    train_leaved(stn,plat)
+    F.TIS.train_leaved(stn,plat)
     local rc = F.get_rc_safe()
     for x,y in pairs(routes) do
         if F.has_rc(x, rc) then
             F.TIS.train_started(y.speed,y.dest,y.dest_plat,y.dest_dist,x,y.expect_delay,y.towards)
-        break
+            break
+        end
     end
 end
